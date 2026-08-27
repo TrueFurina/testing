@@ -1,0 +1,36 @@
+name: "Create Kind Cluster"
+description: >-
+  Spins up a local Kubernetes cluster (Kind) so CI jobs can run against a real
+  cluster without each workflow re-implementing the setup inline. Exports
+  KUBECONFIG so subsequent steps can talk to the cluster directly.
+inputs:
+  kubernetes-version:
+    description: Kubernetes version for the cluster.
+    required: false
+    default: v1.31.0
+  kind-node-image:
+    description: Kind node image (defaults to a matching kindest/node for kubernetes-version).
+    required: false
+    default: kindest/node:v1.31.0@sha256:53df588e04085fd41e12fcb0e4429c1e7f36e8b1a7c9f6a4e5c0e1a2b3c4d5e6
+  cluster-name:
+    description: Name of the Kind cluster.
+    required: false
+    default: kind
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Create Kind cluster
+      uses: helm/kind-action@v1.10.0
+      with:
+        cluster_name: ${{ inputs.cluster-name }}
+        node_image: ${{ inputs.kind-node-image }}
+        version: ${{ inputs.kubernetes-version }}
+        config: ${{ github.action_path }}/kind-config.yaml
+
+    - name: Export KUBECONFIG
+      shell: bash
+      run: |
+        echo "KUBECONFIG=$HOME/.kube/config" >> "$GITHUB_ENV"
