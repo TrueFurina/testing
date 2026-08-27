@@ -1,0 +1,38 @@
+name: "Verify Boilerplate Copyright Headers"
+description: >-
+  Runs kubeflow/testing's hack/boilerplate/boilerplate.py against the repo's
+  changed files so callers never need to vendor a divergent copy of the script.
+inputs:
+  base-ref:
+    description: >-
+      Base ref to diff against for new-file detection. Defaults to the PR base
+      branch (github.base_ref).
+    required: false
+    default: ${{ github.base_ref }}
+  boilerplate-dir:
+    description: >-
+      Directory containing the boilerplate template files. Defaults to the
+      vendored templates shipped with this action.
+    required: false
+    default: ${{ github.action_path }}/../../../hack/boilerplate
+  python-version:
+    description: Python version used to run the checker.
+    required: false
+    default: "3.12"
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Run boilerplate verification
+      shell: bash
+      run: |
+        python "${{ github.action_path }}/../../../hack/boilerplate/boilerplate.py"           --boilerplate-dir "${{ inputs.boilerplate-dir }}"           --base-ref "${{ inputs.base-ref }}"
