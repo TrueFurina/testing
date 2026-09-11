@@ -5,13 +5,13 @@ description: >-
   KUBECONFIG so subsequent steps can talk to the cluster directly.
 inputs:
   kubernetes-version:
-    description: Kubernetes version for the cluster.
+    description: Kubernetes version (drives the kubectl version and the pinned node image below).
     required: false
-    default: v1.31.0
+    default: v1.37.0
   kind-node-image:
-    description: Kind node image (defaults to a matching kindest/node for kubernetes-version).
+    description: Kind node image (kindest/node) matching kubernetes-version.
     required: false
-    default: kindest/node:v1.31.0@sha256:53df588e04085fd41e12fcb0e4429c1e7f36e8b1a7c9f6a4e5c0e1a2b3c4d5e6
+    default: kindest/node:v1.37.0@sha256:a1ed56cfb0e7b93589bdf97c8cd566405a265939e3620fc4f5de89adff580ae5
   cluster-name:
     description: Name of the Kind cluster.
     required: false
@@ -23,11 +23,12 @@ runs:
       uses: actions/checkout@v4
 
     - name: Create Kind cluster
-      uses: helm/kind-action@v1.10.0
+      uses: helm/kind-action@v1.15.0
       with:
         cluster_name: ${{ inputs.cluster-name }}
         node_image: ${{ inputs.kind-node-image }}
-        version: ${{ inputs.kubernetes-version }}
+        version: v0.33.0
+        kubectl_version: ${{ inputs.kubernetes-version }}
         config: ${{ github.action_path }}/kind-config.yaml
 
     - name: Export KUBECONFIG
