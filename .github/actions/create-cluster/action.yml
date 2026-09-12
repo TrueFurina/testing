@@ -19,11 +19,8 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
     - name: Create Kind cluster
-      uses: helm/kind-action@v1.15.0
+      uses: helm/kind-action@06c1ae10762d3b9c1644e7fe69596ae519e015a2  # v1.15.0
       with:
         cluster_name: ${{ inputs.cluster-name }}
         node_image: ${{ inputs.kind-node-image }}
@@ -34,4 +31,11 @@ runs:
     - name: Export KUBECONFIG
       shell: bash
       run: |
-        echo "KUBECONFIG=$HOME/.kube/config" >> "$GITHUB_ENV"
+        # If the caller already exported KUBECONFIG, Kind writes the new
+        # cluster there; overwriting it would point later steps at the
+        # wrong file. Only fall back to the default location when unset.
+        if [ -n "${KUBECONFIG:-}" ]; then
+          echo "KUBECONFIG=$KUBECONFIG" >> "$GITHUB_ENV"
+        else
+          echo "KUBECONFIG=$HOME/.kube/config" >> "$GITHUB_ENV"
+        fi
